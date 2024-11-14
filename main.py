@@ -5,7 +5,6 @@ import boto3
 import requests
 from botocore.config import Config
 
-from config import *
 from utils import download_file, rt_print
 
 
@@ -14,9 +13,9 @@ def core(file_path, bucket_file_name):
     config = Config(signature_version='s3v4')
     s3_client = boto3.client(
         's3',
-        aws_access_key_id=s3_ak,
-        aws_secret_access_key=s3_sk,
-        endpoint_url=endpoint,
+        aws_access_key_id=os.getenv("S3_ACCESS_KEY"),
+        aws_secret_access_key=os.getenv("S3_SECRET_KEY"),
+        endpoint_url=os.getenv("S3_ENDPOINT"),
         config=config
     )
     bucket_name = "hutao-distribute"
