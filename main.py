@@ -20,6 +20,17 @@ def core(file_path, bucket_file_name):
     )
     bucket_name = "hutao-distribute"
     s3_client.upload_file(file_path, bucket_name, bucket_file_name)
+    rt_print("Add R2 to Patch API")
+    rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
+                           headers={
+                               "API-Token": os.getenv("OVERWRITE_TOKEN")
+                           },
+                           json={
+                               "key": "snap-hutao",
+                               "url": f"https://hutao-dist.qhy04.cc/{bucket_file_name}",
+                               "mirror_name": "Cloudflare R2",
+                               "mirror_type": "direct"
+                           }).text)
 
 
 rt_print("CN Overwriter")
@@ -38,7 +49,7 @@ if len(sys.argv) == 1:
         patch_data = requests.get(patch_url).json()
         if patch_data["data"]["version"][:-2] == latest_release_data["tag_name"]:
             break
-    rt_print("Overwriting download url to ghproxy")
+    rt_print("Add GitHub Proxy to Patch API")
     rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
                            headers={
                                "API-Token": os.getenv("OVERWRITE_TOKEN")
