@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       project:
+        options:
+          - hutao
+          - deployment
         description: 'hutao / deployment'
         required: false
         default: 'hutao'
