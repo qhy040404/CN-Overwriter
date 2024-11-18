@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       project:
+        type: choice
         options:
           - hutao
           - deployment
