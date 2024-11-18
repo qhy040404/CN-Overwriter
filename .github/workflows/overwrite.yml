@@ -2,6 +2,11 @@ name: overwrite
 
 on:
   workflow_dispatch:
+    inputs:
+      project:
+        description: 'hutao / deployment'
+        required: false
+        default: 'hutao'
 
 jobs:
   build:
@@ -17,7 +22,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - run: python main.py
+    - run: python main.py ${{ github.event.inputs.project }}
       env:
         OVERWRITE_TOKEN: ${{ secrets.OVERWRITE_TOKEN }}
         S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
