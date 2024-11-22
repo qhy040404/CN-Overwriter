@@ -74,6 +74,11 @@ rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
                            "mirror_type": "direct"
                        }).text)
 
+rt_print("Preheating CDN Caches...")
+requests.get(f"https://api.qhy04.com/hutaocdn/preheat?filename={asset["name"]}", headers={
+    "Authorization": os.getenv("CDN_TOKEN")
+})
+
 if os.path.exists("Snap.Hutao.msix"):
     os.remove("Snap.Hutao.msix")
 if os.path.exists("Snap.Hutao.Deployment.exe"):
