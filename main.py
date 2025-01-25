@@ -75,9 +75,7 @@ rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
                        }).text)
 
 rt_print("Preheating CDN Caches...")
-rt_print(requests.get(f"https://api.qhy04.com/hutaocdn/preheat?filename={asset["name"]}", headers={
-    "Authorization": os.getenv("CDN_TOKEN")
-}).text)
+rt_print("Preheating MinIO")
 minio_s3_client = boto3.client(
     's3',
     aws_access_key_id=os.getenv("MINIO_ACCESS_KEY"),
@@ -87,6 +85,9 @@ minio_s3_client = boto3.client(
 )
 minio_bucket_name = "hutao"
 minio_s3_client.upload_file(download_file_name, minio_bucket_name, asset["name"])
+rt_print(requests.get(f"https://api.qhy04.com/hutaocdn/preheat?filename={asset["name"]}", headers={
+    "Authorization": os.getenv("CDN_TOKEN")
+}).text)
 
 if os.path.exists("Snap.Hutao.msix"):
     os.remove("Snap.Hutao.msix")
