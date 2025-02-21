@@ -14,12 +14,14 @@ if project == "hutao":
     release_asset_index = 1
     patch_url = "https://api.snapgenshin.com/patch/hutao"
     download_file_name = "Snap.Hutao.msix"
+    cdn_mode = "preheat"
 elif project == "deployment":
     project_key = "snap-hutao-deployment"
     github_release_api = f"https://api.github.com/repos/DGP-Studio/Snap.Hutao.Deployment/releases/latest"
     release_asset_index = 0
     patch_url = "https://api.snapgenshin.com/patch/hutao-deployment"
     download_file_name = "Snap.Hutao.Deployment.exe"
+    cdn_mode = "refresh"
 else:
     rt_print("Invalid project")
     sys.exit(1)
@@ -85,7 +87,7 @@ minio_s3_client = boto3.client(
 )
 minio_bucket_name = "hutao"
 minio_s3_client.upload_file(download_file_name, minio_bucket_name, asset["name"])
-rt_print(requests.get(f"https://api.qhy04.com/hutaocdn/preheat?filename={asset["name"]}", headers={
+rt_print(requests.get(f"https://api.qhy04.com/hutaocdn/{cdn_mode}?filename={asset["name"]}", headers={
     "Authorization": os.getenv("CDN_TOKEN")
 }).text)
 
