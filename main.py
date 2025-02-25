@@ -14,6 +14,7 @@ if project == "hutao":
     release_asset_index = 1
     patch_url = "https://api.snapgenshin.com/patch/hutao"
     download_file_name = "Snap.Hutao.msix"
+    should_overwrite = True
     cdn_mode = "preheat"
 elif project == "deployment":
     project_key = "snap-hutao-deployment"
@@ -21,6 +22,7 @@ elif project == "deployment":
     release_asset_index = 0
     patch_url = "https://api.snapgenshin.com/patch/hutao-deployment"
     download_file_name = "Snap.Hutao.Deployment.exe"
+    should_overwrite = False
     cdn_mode = "refresh"
 else:
     rt_print("Invalid project")
@@ -39,17 +41,18 @@ while True:
     patch_data = requests.get(patch_url).json()
     if patch_data["data"]["version"][:-2] == latest_release_data["tag_name"]:
         break
-rt_print("Add GitHub Proxy to Patch API")
-rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
-                       headers={
-                           "API-Token": os.getenv("OVERWRITE_TOKEN")
-                       },
-                       json={
-                           "key": project_key,
-                           "url": asset_url,
-                           "mirror_name": "GitHub Proxy",
-                           "mirror_type": "direct"
-                       }).text)
+if should_overwrite:
+    rt_print("Add GitHub Proxy to Patch API")
+    rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
+                           headers={
+                               "API-Token": os.getenv("OVERWRITE_TOKEN")
+                           },
+                           json={
+                               "key": project_key,
+                               "url": asset_url,
+                               "mirror_name": "GitHub Proxy",
+                               "mirror_type": "direct"
+                           }).text)
 rt_print("Downloading latest version")
 download_file(asset_url, download_file_name)
 
@@ -64,17 +67,18 @@ s3_client = boto3.client(
 )
 bucket_name = "hutao-distribute"
 s3_client.upload_file(download_file_name, bucket_name, asset["name"])
-rt_print("Add R2 to Patch API")
-rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
-                       headers={
-                           "API-Token": os.getenv("OVERWRITE_TOKEN")
-                       },
-                       json={
-                           "key": project_key,
-                           "url": f"https://hutao-dist.qhy04.cc/{asset["name"]}",
-                           "mirror_name": "Cloudflare R2",
-                           "mirror_type": "direct"
-                       }).text)
+if should_overwrite:
+    rt_print("Add R2 to Patch API")
+    rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
+                           headers={
+                               "API-Token": os.getenv("OVERWRITE_TOKEN")
+                           },
+                           json={
+                               "key": project_key,
+                               "url": f"https://hutao-dist.qhy04.cc/{asset["name"]}",
+                               "mirror_name": "Cloudflare R2",
+                               "mirror_type": "direct"
+                           }).text)
 
 rt_print("Preheating CDN Caches...")
 rt_print("Preheating MinIO")
