@@ -92,11 +92,8 @@ minio_s3_client = boto3.client(
 )
 minio_bucket_name = "hutao"
 if project == "deployment":
-    response = minio_s3_client.list_objects_v2(Bucket=bucket_name)
-    for obj in response.get('Contents', []):
-        rt_print(obj['Key'])
-        if obj['Key'] == download_file_name:
-            minio_s3_client.delete_object(Bucket=bucket_name, Key=obj["Key"])
+    rt_print("delete deployment first to speed up")
+    minio_s3_client.delete_object(Bucket=minio_bucket_name, Key=asset["name"])
     time.sleep(1)
 minio_s3_client.upload_file(download_file_name, minio_bucket_name, asset["name"])
 rt_print(requests.get(f"https://api.qhy04.com/hutaocdn/{cdn_mode}?filename={asset["name"]}", headers={
