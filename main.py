@@ -90,6 +90,8 @@ minio_s3_client = boto3.client(
     config=config
 )
 minio_bucket_name = "hutao"
+if project == "deployment":
+    minio_s3_client.delete_object(Bucket=minio_bucket_name, Key=asset["name"])
 minio_s3_client.upload_file(download_file_name, minio_bucket_name, asset["name"])
 rt_print(requests.get(f"https://api.qhy04.com/hutaocdn/{cdn_mode}?filename={asset["name"]}", headers={
     "Authorization": os.getenv("CDN_TOKEN")
