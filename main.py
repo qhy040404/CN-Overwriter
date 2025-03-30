@@ -14,6 +14,7 @@ if project == "hutao":
     release_asset_index = 1
     patch_url = "https://api.snapgenshin.com/patch/hutao"
     download_file_name = "Snap.Hutao.msix"
+    need_download = False
     should_overwrite = True
     cdn_mode = "preheat"
 elif project == "deployment":
@@ -22,6 +23,7 @@ elif project == "deployment":
     release_asset_index = 0
     patch_url = "https://api.snapgenshin.com/patch/hutao-deployment"
     download_file_name = "Snap.Hutao.Deployment.exe"
+    need_download = True
     should_overwrite = False
     cdn_mode = "refresh"
 else:
@@ -53,20 +55,21 @@ if should_overwrite:
                                "mirror_name": "GitHub Proxy",
                                "mirror_type": "direct"
                            }).text)
-rt_print("Downloading latest version")
-download_file(asset_url, download_file_name)
+if need_download:
+    rt_print("Downloading latest version")
+    download_file(asset_url, download_file_name)
 
-rt_print("Starting upload...")
-config = Config(signature_version='s3v4')
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=os.getenv("S3_ACCESS_KEY"),
-    aws_secret_access_key=os.getenv("S3_SECRET_KEY"),
-    endpoint_url=os.getenv("S3_ENDPOINT"),
-    config=config
-)
-bucket_name = "hutao-distribute"
-s3_client.upload_file(download_file_name, bucket_name, asset["name"])
+    rt_print("Starting upload...")
+    config = Config(signature_version='s3v4')
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=os.getenv("S3_ACCESS_KEY"),
+        aws_secret_access_key=os.getenv("S3_SECRET_KEY"),
+        endpoint_url=os.getenv("S3_ENDPOINT"),
+        config=config
+    )
+    bucket_name = "hutao-distribute"
+    s3_client.upload_file(download_file_name, bucket_name, asset["name"])
 if should_overwrite:
     rt_print("Add R2 to Patch API")
     rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
@@ -81,16 +84,17 @@ if should_overwrite:
                            }).text)
 
 rt_print("Preheating CDN Caches...")
-rt_print("Preheating MinIO")
-minio_s3_client = boto3.client(
-    's3',
-    aws_access_key_id=os.getenv("MINIO_ACCESS_KEY"),
-    aws_secret_access_key=os.getenv("MINIO_SECRET_KEY"),
-    endpoint_url=os.getenv("MINIO_ENDPOINT"),
-    config=config
-)
-minio_bucket_name = "hutao"
-minio_s3_client.upload_file(download_file_name, minio_bucket_name, asset["name"])
+if need_download:
+    rt_print("Preheating MinIO")
+    minio_s3_client = boto3.client(
+        's3',
+        aws_access_key_id=os.getenv("MINIO_ACCESS_KEY"),
+        aws_secret_access_key=os.getenv("MINIO_SECRET_KEY"),
+        endpoint_url=os.getenv("MINIO_ENDPOINT"),
+        config=config
+    )
+    minio_bucket_name = "hutao"
+    minio_s3_client.upload_file(download_file_name, minio_bucket_name, asset["name"])
 rt_print(requests.get(f"https://api.qhy04.com/hutaocdn/{cdn_mode}?filename={asset["name"]}", headers={
     "Authorization": os.getenv("CDN_TOKEN")
 }).text)
