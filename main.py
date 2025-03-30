@@ -91,6 +91,7 @@ if need_download:
     bucket_name = "hutao-distribute"
     s3_client.upload_file(download_file_name, bucket_name, asset["name"],
                           Callback=ProgressPercentage(download_file_name))
+    rt_print()
     rt_print("Upload complete")
 if should_overwrite:
     rt_print("Add R2 to Patch API")
@@ -118,6 +119,7 @@ if need_download:
     minio_bucket_name = "hutao"
     minio_s3_client.upload_file(download_file_name, minio_bucket_name, asset["name"],
                                 Callback=ProgressPercentage(download_file_name))
+    rt_print()
     rt_print("Preheating complete")
 rt_print(requests.get(f"https://api.qhy04.com/hutaocdn/{cdn_mode}?filename={asset["name"]}", headers={
     "Authorization": os.getenv("CDN_TOKEN")
