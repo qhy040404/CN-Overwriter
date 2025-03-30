@@ -1,11 +1,31 @@
 import os
 import sys
+import threading
 
 import boto3
 import requests
 from botocore.config import Config
 
 from utils import download_file, rt_print
+
+
+class ProgressPercentage(object):
+    def __init__(self, filename):
+        self._filename = filename
+        self._size = float(os.path.getsize(filename))
+        self._seen_so_far = 0
+        self._lock = threading.Lock()
+
+    def __call__(self, bytes_amount):
+        with self._lock:
+            self._seen_so_far += bytes_amount
+            percentage = (self._seen_so_far / self._size) * 100
+            sys.stdout.write(
+                "\r%s  %s / %s  (%.2f%%)" % (
+                    self._filename, self._seen_so_far, self._size,
+                    percentage))
+            sys.stdout.flush()
+
 
 project = sys.argv[1]
 if project == "hutao":
@@ -69,7 +89,9 @@ if need_download:
         config=config
     )
     bucket_name = "hutao-distribute"
-    s3_client.upload_file(download_file_name, bucket_name, asset["name"])
+    s3_client.upload_file(download_file_name, bucket_name, asset["name"],
+                          Callback=ProgressPercentage(download_file_name))
+    rt_print("Upload complete")
 if should_overwrite:
     rt_print("Add R2 to Patch API")
     rt_print(requests.post("https://api.snapgenshin.com/patch/mirror",
@@ -94,7 +116,9 @@ if need_download:
         config=config
     )
     minio_bucket_name = "hutao"
-    minio_s3_client.upload_file(download_file_name, minio_bucket_name, asset["name"])
+    minio_s3_client.upload_file(download_file_name, minio_bucket_name, asset["name"],
+                                Callback=ProgressPercentage(download_file_name))
+    rt_print("Preheating complete")
 rt_print(requests.get(f"https://api.qhy04.com/hutaocdn/{cdn_mode}?filename={asset["name"]}", headers={
     "Authorization": os.getenv("CDN_TOKEN")
 }).text)
